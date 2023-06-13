@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  email     String   @unique
+  password  String
+  profile   Profiles @relation(fields: [profileId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  profileId Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Tokens    Tokens[]
+
+  @@index([id, uuid, email])
+  @@map("users")
+}
+
+model Profiles {
+  id        Int        @id @default(autoincrement())
+  uuid      String     @unique @default(uuid())
+  name      String?
+  document  String?
+  birthDay  DateTime?
+  phone     String?
+  bio       String?
+  slug      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Users     Users[]
+  address   Addresses? @relation(fields: [addressId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  addressId Int        @unique
+
+  @@index([id, uuid])
+  @@map("profiles")
+}
+
+model Addresses {
+  id            Int       @id @default(autoincrement())
+  uuid          String    @unique @default(uuid())
+  country       String?
+  state         String?
+  city          String?
+  neighbourhood String?
+  zipCode       String?
+  street        String?
+  number        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  Profiles      Profiles?
+
+  @@index([id, uuid])
+  @@map("addresses")
+}
+
+enum TokenType {
+  EMAIL
+  PHONE
+}
+
+model Tokens {
+  id        Int       @id @default(autoincrement())
+  uuid      String    @unique @default(uuid())
+  token     String
+  type      TokenType
+  expired   Boolean   @default(false)
+  users     Users?    @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userId    Int?
+  expiredAt DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([id, uuid, token])
+  @@map("tokens")
+}

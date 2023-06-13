@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+protected_branch="main"
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+if [ "$current_branch" = "$protected_branch" ]; then
+    echo "Error: Não é permitido push direto na branch $protected_branch."
+    exit 1
+fi
+
+echo '🏗️👷 Antes de enviar seu codigo vou esta testando o projeto.'
+
+npm run test:e2e || (
+    echo '🤢🤮🤢🤮 É F**KING RAW - Seu teste e2e parece nojento.. 🤢🤮🤢🤮
+    '
+    false;
+)
+
+npm run build || (
+    echo '❌👷🔨❌ Tentando gerar um build ❌👷🔨❌
+            Falha na compilação: veja os erros acima para ver o motivo.
+    '
+    false;
+)
+
+# If everything passes... Now we can commit
+echo '
+✅✅✅✅ Você venceu mais uma vez... Estou enviando seu codigo agora para o git. ✅✅✅✅
+
+'
+
+rm -r build  || (
+    echo 'erro ao remover build'
+    false;
+)
+echo 'Você venceu mais uma vez... Estou enviando seu codigo agora para o git e removendo a build.
+
+'

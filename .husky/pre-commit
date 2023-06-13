@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+protected_branch="main"
+current_branch=$(git symbolic-ref HEAD | sed -e 's,.*/\(.*\),\1,')
+
+if [ "$current_branch" = "$protected_branch" ]; then
+    echo "Error: Não é permitido commit diretamente na branch $protected_branch."
+    exit 1
+fi
+
+echo '🏗️👷 Estilizando, testando e construindo seu projeto antes de se comprometer'
+
+# Check Prettier standards
+npm run check-format ||
+(
+    echo '🤢🤮🤢🤮 É F**KING RAW - Seu estilo parece nojento.. 🤢🤮🤢🤮
+            Falha na verificação do Prettier. Execute o npm run lint, adicione alterações e tente confirmar novamente.';
+    false;
+)
+
+# Linting project
+npm run check-lint ||
+(
+        echo '😤🏀👋😤 Tire esse fracote daqui! 😤🏀👋😤
+                  Falha na verificação do ESLint. Faça as alterações necessárias listadas acima, adicione alterações e tente confirmar novamente.'
+        false;
+)
+
+# Check tsconfig
+npm run check-types ||
+(
+    echo '🤡😂❌🤡 Verificação de types com falha. 🤡😂❌🤡
+            Você está seriamente tentando escrever isso? Faça as alterações necessárias acima.'
+    false;
+)
+
+## Check test project
+npm run test || (
+    echo '🤢🤮🤢🤮 É F**KING RAW - Seu teste parece nojento.. 🤢🤮🤢🤮
+    '
+    false;
+)
+
+## Check build project
+npm run build || (
+    echo '🤢🤮🤢🤮 É F**KING RAW - Seu teste parece nojento.. 🤢🤮🤢🤮
+    '
+    false;
+)
+
+# If everything passes... Now we can commit
+echo '
+✅✅✅✅ Você venceu desta vez... Estou comitando seu codigo agora. ✅✅✅✅
+
+'
